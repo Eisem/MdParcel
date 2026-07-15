@@ -15,14 +15,15 @@
       </div></div>
       <div class="menu"><button class="menu-trigger">编辑(E)</button><div class="menu-popup">
         <button data-action="undo">撤销 <kbd>Ctrl+Z</kbd></button><button data-action="redo">重做 <kbd>Ctrl+Y</kbd></button><span class="separator"></span>
-        <button data-action="cut">剪切 <kbd>Ctrl+X</kbd></button><button data-action="copy">复制 <kbd>Ctrl+C</kbd></button><button data-action="paste">粘贴 <kbd>Ctrl+V</kbd></button><button data-action="select-all">全选 <kbd>Ctrl+A</kbd></button>
+        <button data-action="cut">剪切 <kbd>Ctrl+X</kbd></button><button data-action="copy">复制 <kbd>Ctrl+C</kbd></button><button data-action="paste">粘贴 <kbd>Ctrl+V</kbd></button><button data-action="select-all">全选 <kbd>Ctrl+A</kbd></button><span class="separator"></span>
+        <button data-action="find">查找 <kbd>Ctrl+F</kbd></button><button data-action="replace">替换 <kbd>Ctrl+H</kbd></button>
       </div></div>
       <div class="menu"><button class="menu-trigger">格式(O)</button><div class="menu-popup">
         <button data-action="h1">一级标题</button><button data-action="h2">二级标题</button><button data-action="h3">三级标题</button><span class="separator"></span>
         <button data-action="bold">加粗 <kbd>Ctrl+B</kbd></button><button data-action="italic">斜体 <kbd>Ctrl+I</kbd></button><button data-action="code">行内代码</button><button data-action="quote">引用</button><button data-action="unordered-list">无序列表</button><button data-action="ordered-list">有序列表</button><button data-action="link">链接</button>
       </div></div>
       <div class="menu"><button class="menu-trigger">视图(V)</button><div class="menu-popup">
-        <button data-action="source">源码模式</button><button data-action="preview">预览模式</button><button data-action="split">分屏模式 <kbd>Ctrl+\</kbd></button><span class="separator"></span><button data-action="toggle-sidebar">显示/隐藏侧边栏</button>
+        <button data-action="source">Markdown 模式</button><button data-action="wysiwyg">所见即所得模式</button><button data-action="split">双向分屏 <kbd>Ctrl+\</kbd></button><span class="separator"></span><button data-action="toggle-sidebar">显示/隐藏侧边栏</button>
       </div></div>
       <div class="menu"><button class="menu-trigger">帮助(H)</button><div class="menu-popup"><button data-action="about">关于 MDParcel</button></div></div>
       <div class="window-document" id="window-document">未命名文档</div>
@@ -33,8 +34,19 @@
       <select id="heading-level" title="段落样式"><option value="paragraph">正文</option><option value="h1">标题 1</option><option value="h2">标题 2</option><option value="h3">标题 3</option></select>
       <button data-action="bold" title="加粗"><strong>B</strong></button><button data-action="italic" title="斜体"><em>I</em></button><button data-action="code" title="行内代码">&lt;/&gt;</button><button data-action="quote" title="引用">❝</button>
       <button data-action="unordered-list" title="无序列表">• 列表</button><button data-action="ordered-list" title="有序列表">1. 列表</button><button data-action="link" title="插入链接">链接</button><button data-action="insert-image" title="导入图片">图片</button>
-      <span class="toolbar-spacer"></span><div class="view-switch"><button data-action="source" data-mode="source">源码</button><button data-action="split" data-mode="split" class="active">分屏</button><button data-action="preview" data-mode="preview">预览</button></div>
+      <span class="toolbar-spacer"></span><div class="view-switch"><button data-action="source" data-mode="source">Markdown</button><button data-action="split" data-mode="split" class="active">双向分屏</button><button data-action="wysiwyg" data-mode="wysiwyg">所见即所得</button></div>
     </div>
+
+    <div id="document-tabs" class="document-tabs" role="tablist" aria-label="打开的文档"></div>
+
+    <section id="find-panel" class="find-panel" hidden aria-label="查找和替换">
+      <input id="find-input" type="text" placeholder="查找" aria-label="查找内容" />
+      <span id="find-count">0/0</span>
+      <button data-action="find-previous" title="上一个匹配">↑</button><button data-action="find-next" title="下一个匹配">↓</button>
+      <input id="replace-input" type="text" placeholder="替换为" aria-label="替换内容" />
+      <button data-action="replace-one">替换</button><button data-action="replace-all">全部替换</button>
+      <label><input id="match-case" type="checkbox" /> 区分大小写</label><button data-action="close-find" title="关闭">×</button>
+    </section>
 
     <main class="workspace">
       <aside id="sidebar">
@@ -44,11 +56,11 @@
       </aside>
       <section id="editor-shell" class="editor-shell mode-split">
         <div class="editor-pane"><input id="document-title" aria-label="文档标题" value="未命名文档" /><textarea id="markdown-editor" spellcheck="false" aria-label="Markdown 编辑器"></textarea></div>
-        <div class="preview-pane"><iframe id="preview" title="Markdown 预览" sandbox="allow-same-origin"></iframe></div>
+        <div class="preview-pane"><article id="wysiwyg-editor" contenteditable="true" spellcheck="true" aria-label="所见即所得编辑器"></article><div id="drop-hint">松开以将图片写入当前 .mdparcel</div></div>
       </section>
     </main>
 
-    <footer class="statusbar"><span id="save-state">已保存</span><span id="mode-state">分屏模式</span><span class="status-spacer"></span><span id="line-count">1 行</span><span id="char-count">0 字符</span><span>UTF-8</span></footer>
+    <footer class="statusbar"><span id="save-state">已保存</span><span id="mode-state">双向分屏</span><span class="status-spacer"></span><span id="line-count">1 行</span><span id="char-count">0 字符</span><span>UTF-8</span></footer>
     <div id="toast" class="toast" role="status"></div>
     <script type="module" src="/src/main.js"></script>
   </body>

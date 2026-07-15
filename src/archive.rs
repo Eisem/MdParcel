@@ -17,6 +17,7 @@ use crate::{
 
 const MAX_ENTRIES: usize = 10_000;
 const MAX_UNPACKED_BYTES: u64 = 512 * 1024 * 1024;
+const MAX_IMPORTED_ASSET_BYTES: u64 = 100 * 1024 * 1024;
 
 #[derive(serde::Serialize)]
 pub struct RenderedDocument {
@@ -270,6 +271,19 @@ pub fn save_document(
 /// Imports an image into an existing package and returns its archive-relative path.
 pub fn import_asset(package: &Path, source_file: &Path) -> Result<String> {
     let (manifest, markdown, mut assets) = read_package_content(package)?;
+    if !source_file.is_file() {
+        bail!("imported asset is not a file: {}", source_file.display());
+    }
+    let media_type = mime_guess::from_path(source_file)
+        .first_or_octet_stream()
+        .to_string();
+    if !media_type.starts_with("image/") {
+        bail!("only image files can be imported");
+    }
+    let size = fs::metadata(source_file)?.len();
+    if size > MAX_IMPORTED_ASSET_BYTES {
+        bail!("image is larger than the 100 MiB import limit");
+    }
     let bytes = fs::read(source_file)
         .with_context(|| format!("read imported asset {}", source_file.display()))?;
     let original_name = source_file
@@ -299,9 +313,7 @@ pub fn import_asset(package: &Path, source_file: &Path) -> Result<String> {
         Asset {
             archive_path: archive_path.clone(),
             original_path: filename,
-            media_type: mime_guess::from_path(source_file)
-                .first_or_octet_stream()
-                .to_string(),
+            media_type,
             size: bytes.len() as u64,
             sha256: hash(&bytes),
         },
@@ -331,7 +343,7 @@ fn render_markdown_with_assets(markdown: &str, assets: &[(Asset, Vec<u8>)]) -> S
         );
         body = body.replace(
             &format!("src=\"{}\"", asset.archive_path),
-            &format!("src=\"{data_url}\""),
+            &format!("data-md-src=\"{}\" src=\"{data_url}\"", asset.archive_path),
         );
     }
     body
@@ -634,6 +646,49 @@ mod tests {
         let document = render_document(&package)?;
         assert_eq!(document.asset_count, 1);
         assert!(document.html.contains("data:image/png;base64,"));
+        assert!(document.html.contains("data-md-src=\"assets/photo.png\""));
+        fs::remove_dir_all(root)?;
+        Ok(())
+    }
+
+    #[test]
+    fn importing_duplicate_names_creates_unique_archive_paths() -> Result<()> {
+        let id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("mdparcel-duplicate-asset-test-{id}"));
+        fs::create_dir_all(root.join("first"))?;
+        fs::create_dir_all(root.join("second"))?;
+        let package = root.join("images.mdparcel");
+        fs::write(root.join("first/photo.png"), b"first")?;
+        fs::write(root.join("second/photo.png"), b"second")?;
+        save_document(None, &package, "Images", "# Images")?;
+        assert_eq!(
+            import_asset(&package, &root.join("first/photo.png"))?,
+            "assets/photo.png"
+        );
+        assert_eq!(
+            import_asset(&package, &root.join("second/photo.png"))?,
+            "assets/photo-2.png"
+        );
+        assert_eq!(render_document(&package)?.asset_count, 2);
+        fs::remove_dir_all(root)?;
+        Ok(())
+    }
+
+    #[test]
+    fn non_image_assets_are_rejected_by_the_editor_import() -> Result<()> {
+        let id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("mdparcel-invalid-asset-test-{id}"));
+        fs::create_dir_all(&root)?;
+        let package = root.join("note.mdparcel");
+        let text = root.join("notes.txt");
+        fs::write(&text, b"not an image")?;
+        save_document(None, &package, "Note", "# Note")?;
+        let error = import_asset(&package, &text).unwrap_err().to_string();
+        assert!(error.contains("only image files"));
         fs::remove_dir_all(root)?;
         Ok(())
     }
