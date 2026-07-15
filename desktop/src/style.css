@@ -1,0 +1,85 @@
+:root {
+  color: #222831;
+  background: #f5f6f8;
+  font-family: system-ui, "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; overflow: hidden; }
+button, input, textarea, select { font: inherit; }
+button { color: inherit; }
+
+.menubar {
+  position: relative; z-index: 20; height: 38px; display: flex; align-items: center;
+  padding: 0 10px; background: #f8f9fb; border-bottom: 1px solid #dfe3e8; user-select: none;
+}
+.brand { padding: 0 12px 0 5px; font-weight: 700; color: #1769c2; letter-spacing: .2px; }
+.menu { position: relative; height: 100%; }
+.menu-trigger { height: 100%; padding: 0 10px; border: 0; background: transparent; cursor: default; }
+.menu-trigger:hover, .menu.open .menu-trigger { background: #e8ebef; }
+.menu-popup {
+  display: none; position: absolute; top: 36px; left: 0; min-width: 230px; padding: 5px;
+  background: white; border: 1px solid #d6dbe1; border-radius: 5px; box-shadow: 0 9px 28px #1b273522;
+}
+.menu.open .menu-popup { display: grid; }
+.menu-popup button { display: flex; justify-content: space-between; gap: 24px; width: 100%; padding: 7px 10px; border: 0; border-radius: 3px; background: transparent; text-align: left; cursor: default; }
+.menu-popup button:hover { background: #e8f1fc; }
+.menu-popup kbd { color: #77818d; font: 12px system-ui; }
+.separator { height: 1px; margin: 4px 6px; background: #e5e8ec; }
+.window-document { margin-left: auto; padding-right: 8px; max-width: 36vw; overflow: hidden; color: #69737e; text-overflow: ellipsis; white-space: nowrap; }
+
+.toolbar {
+  height: 46px; display: flex; align-items: center; gap: 4px; padding: 5px 10px;
+  background: white; border-bottom: 1px solid #dfe3e8; user-select: none;
+}
+.toolbar button, .toolbar select { height: 32px; padding: 0 10px; border: 1px solid transparent; border-radius: 4px; background: transparent; cursor: pointer; }
+.toolbar button:hover, .toolbar select:hover { border-color: #dce1e7; background: #f4f6f8; }
+.toolbar select { min-width: 92px; border-color: #e0e4e8; }
+.toolbar-separator { width: 1px; height: 23px; margin: 0 4px; background: #dde2e7; }
+.toolbar-spacer, .status-spacer { flex: 1; }
+.view-switch { display: flex; padding: 2px; border-radius: 5px; background: #eff2f5; }
+.view-switch button { height: 27px; padding: 0 12px; }
+.view-switch button.active { color: #1769c2; background: white; border-color: #d9dee4; box-shadow: 0 1px 3px #202b361c; }
+
+.workspace { display: flex; height: calc(100vh - 112px); min-height: 0; }
+#sidebar { width: 278px; flex: 0 0 278px; background: #f8f9fa; border-right: 1px solid #dfe3e8; overflow: hidden; transition: width .18s, flex-basis .18s; }
+#sidebar.hidden { width: 0; flex-basis: 0; border-right: 0; }
+.sidebar-tabs { height: 49px; display: grid; grid-template-columns: 1fr 1fr; padding: 0 22px; background: #fafbfc; }
+.sidebar-tabs button { border: 0; border-bottom: 3px solid transparent; background: transparent; color: #68727d; cursor: pointer; }
+.sidebar-tabs button.active { border-color: #303943; color: #222831; font-weight: 700; }
+.sidebar-panel { height: calc(100% - 49px); padding: 14px 13px 30px; overflow: auto; }
+.document-card { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 5px; background: white; border: 1px solid #e2e6ea; }
+.document-card > div { min-width: 0; }
+.document-card strong, .document-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.document-card small { margin-top: 3px; color: #7b8590; }
+.file-icon { display: grid; place-items: center; width: 34px; height: 38px; flex: 0 0 auto; border-radius: 4px; color: white; background: #3a78c2; font-size: 11px; font-weight: 700; }
+.asset-summary, .empty-hint { padding: 8px 10px; color: #7b8590; font-size: 12px; }
+.outline { display: grid; gap: 1px; }
+.outline-item { overflow: hidden; width: 100%; padding: 5px 7px; border: 0; border-radius: 3px; background: transparent; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.outline-item:hover { color: #1769c2; background: #e9f1fb; }
+.outline-item.level-1 { font-weight: 700; }
+.outline-item.level-2 { padding-left: 18px; }
+.outline-item.level-3 { padding-left: 31px; font-size: 13px; }
+.outline-item.level-4, .outline-item.level-5, .outline-item.level-6 { padding-left: 44px; color: #65707b; font-size: 12px; }
+
+.editor-shell { display: grid; flex: 1; min-width: 0; background: white; }
+.editor-shell.mode-split { grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr); }
+.editor-shell.mode-source, .editor-shell.mode-preview { grid-template-columns: 1fr; }
+.editor-shell.mode-source .preview-pane, .editor-shell.mode-preview .editor-pane { display: none; }
+.editor-pane, .preview-pane { min-width: 0; min-height: 0; background: white; }
+.editor-pane { display: flex; flex-direction: column; border-right: 1px solid #dfe3e8; }
+#document-title { width: calc(100% - 64px); margin: 21px 32px 4px; padding: 8px 0; border: 0; border-bottom: 1px solid #e8ebee; outline: none; color: #20262d; background: transparent; font-size: 25px; font-weight: 700; }
+#markdown-editor { flex: 1; width: 100%; padding: 20px 32px 70px; resize: none; border: 0; outline: none; color: #29323b; background: white; font: 15px/1.75 Consolas, "Cascadia Code", monospace; tab-size: 2; }
+.preview-pane iframe { width: 100%; height: 100%; border: 0; background: white; }
+
+.statusbar { height: 28px; display: flex; align-items: center; gap: 18px; padding: 0 13px; border-top: 1px solid #dfe3e8; color: #6c7681; background: #f8f9fb; font-size: 12px; user-select: none; }
+.toast { position: fixed; z-index: 50; left: 50%; bottom: 42px; max-width: 460px; padding: 9px 15px; border-radius: 5px; color: white; background: #27313b; box-shadow: 0 7px 24px #17202a44; opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: .18s; }
+.toast.visible { opacity: 1; transform: translate(-50%, 0); }
+.toast.error { background: #b53b3b; }
+
+@media (max-width: 850px) {
+  #sidebar { width: 230px; flex-basis: 230px; }
+  .editor-shell.mode-split { grid-template-columns: 1fr; }
+  .editor-shell.mode-split .preview-pane { display: none; }
+  .toolbar button[title="插入链接"], .toolbar button[title="引用"] { display: none; }
+}
