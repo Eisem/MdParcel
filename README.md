@@ -14,10 +14,16 @@ mdparcel unpack .\rust-notes.mdparcel -o .\restored-notes
 
 ## Desktop editor
 
-The `desktop/` directory contains a Tauri desktop editor. Version 0.2 supports
-multiple document tabs with per-document unsaved state, find/replace/replace-all,
-image picker and drag-and-drop imports, and bidirectional Markdown/WYSIWYG editing.
-Imported images are stored inside the active `.mdparcel` archive.
+The `desktop/` directory contains a Tauri desktop editor. Version 0.3 embeds
+Vditor's IR (instant-rendering) editing engine as a continuous, borderless
+document surface: the active block exposes its Markdown markers while the rest
+of the document stays rendered. Vditor's web toolbar is hidden and its formatting
+commands are integrated into the application's top Edit menu. All Vditor assets
+are bundled locally, so editing does not require a CDN or internet connection.
+
+The editor also supports multiple document tabs, unsaved-state indicators,
+find/replace/replace-all, and image imports from the picker, drag-and-drop, or
+the clipboard. Imported images are stored inside the active `.mdparcel` archive.
 
 ```powershell
 cd .\desktop

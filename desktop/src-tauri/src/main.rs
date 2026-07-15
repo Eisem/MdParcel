@@ -37,6 +37,22 @@ fn import_asset(package_path: String, asset_path: String) -> Result<String, Stri
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+fn import_asset_bytes(
+    package_path: String,
+    filename: String,
+    media_type: String,
+    bytes: Vec<u8>,
+) -> Result<String, String> {
+    archive::import_asset_bytes(
+        Path::new(&package_path),
+        &filename,
+        &media_type,
+        bytes,
+    )
+    .map_err(|error| error.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -44,7 +60,8 @@ fn main() {
             open_package,
             render_markdown,
             save_package,
-            import_asset
+            import_asset,
+            import_asset_bytes
         ])
         .run(tauri::generate_context!())
         .expect("failed to run MDParcel desktop reader");

@@ -270,7 +270,6 @@ pub fn save_document(
 
 /// Imports an image into an existing package and returns its archive-relative path.
 pub fn import_asset(package: &Path, source_file: &Path) -> Result<String> {
-    let (manifest, markdown, mut assets) = read_package_content(package)?;
     if !source_file.is_file() {
         bail!("imported asset is not a file: {}", source_file.display());
     }
@@ -290,11 +289,44 @@ pub fn import_asset(package: &Path, source_file: &Path) -> Result<String> {
         .file_name()
         .and_then(|value| value.to_str())
         .context("asset filename must be valid UTF-8")?;
-    let stem = source_file
+    import_asset_data(package, original_name, &media_type, bytes)
+}
+
+/// Imports an image received from the system clipboard without requiring a
+/// temporary filesystem path.
+pub fn import_asset_bytes(
+    package: &Path,
+    filename: &str,
+    media_type: &str,
+    bytes: Vec<u8>,
+) -> Result<String> {
+    if !media_type.starts_with("image/") {
+        bail!("clipboard data is not an image");
+    }
+    if bytes.len() as u64 > MAX_IMPORTED_ASSET_BYTES {
+        bail!("image is larger than the 100 MiB import limit");
+    }
+    import_asset_data(package, filename, media_type, bytes)
+}
+
+fn import_asset_data(
+    package: &Path,
+    requested_filename: &str,
+    media_type: &str,
+    bytes: Vec<u8>,
+) -> Result<String> {
+    let (manifest, markdown, mut assets) = read_package_content(package)?;
+    let original_name = Path::new(requested_filename)
+        .file_name()
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.is_empty())
+        .unwrap_or("pasted-image.png");
+    let source_name = Path::new(original_name);
+    let stem = source_name
         .file_stem()
         .and_then(|value| value.to_str())
         .unwrap_or("image");
-    let extension = source_file
+    let extension = source_name
         .extension()
         .and_then(|value| value.to_str())
         .map(|value| format!(".{value}"))
@@ -313,7 +345,7 @@ pub fn import_asset(package: &Path, source_file: &Path) -> Result<String> {
         Asset {
             archive_path: archive_path.clone(),
             original_path: filename,
-            media_type,
+            media_type: media_type.to_owned(),
             size: bytes.len() as u64,
             sha256: hash(&bytes),
         },
@@ -689,6 +721,28 @@ mod tests {
         save_document(None, &package, "Note", "# Note")?;
         let error = import_asset(&package, &text).unwrap_err().to_string();
         assert!(error.contains("only image files"));
+        fs::remove_dir_all(root)?;
+        Ok(())
+    }
+
+    #[test]
+    fn clipboard_image_bytes_are_written_into_the_package() -> Result<()> {
+        let id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("mdparcel-clipboard-test-{id}"));
+        fs::create_dir_all(&root)?;
+        let package = root.join("clipboard.mdparcel");
+        save_document(None, &package, "Clipboard", "# Clipboard")?;
+        let path = import_asset_bytes(
+            &package,
+            "Clipboard Image.png",
+            "image/png",
+            b"clipboard png".to_vec(),
+        )?;
+        assert_eq!(path, "assets/Clipboard Image.png");
+        let document = render_document(&package)?;
+        assert_eq!(document.asset_count, 1);
         fs::remove_dir_all(root)?;
         Ok(())
     }
