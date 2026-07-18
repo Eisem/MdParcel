@@ -53,7 +53,7 @@ button { color: inherit; }
 .find-panel label, #find-count { color: #69737e; font-size: 12px; white-space: nowrap; }
 
 .workspace { position: relative; display: flex; flex: 1; min-height: 0; }
-#sidebar { width: var(--sidebar-width); flex: 0 0 var(--sidebar-width); background: #f8f9fa; border-right: 1px solid #dfe3e8; overflow: hidden; transition: width .18s, flex-basis .18s; }
+#sidebar { width: var(--sidebar-width); min-width: 0; flex: 0 0 var(--sidebar-width); background: #f8f9fa; border-right: 1px solid #dfe3e8; overflow: hidden; transition: width .18s, flex-basis .18s; }
 #sidebar.hidden { width: 0; flex-basis: 0; border-right: 0; }
 .workspace.resizing #sidebar { transition: none; }
 .sidebar-tabs { height: 49px; display: grid; grid-template-columns: 1fr 1fr; padding: 0 36px 0 22px; background: #fafbfc; }
