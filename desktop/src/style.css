@@ -36,7 +36,8 @@ button { color: inherit; }
 
 .status-spacer { flex: 1; }
 
-.document-tabs { display: flex; flex: 0 0 37px; min-width: 0; padding: 3px 8px 0; overflow-x: auto; overflow-y: hidden; background: #edf0f3; border-bottom: 1px solid #d8dde3; }
+.tab-strip { display: flex; flex: 0 0 37px; min-width: 0; background: #edf0f3; border-bottom: 1px solid #d8dde3; }
+.document-tabs { display: flex; flex: 1; min-width: 0; padding: 3px 8px 0; overflow-x: auto; overflow-y: hidden; }
 .document-tab { display: flex; align-items: center; gap: 7px; min-width: 120px; max-width: 230px; height: 34px; padding: 0 8px 0 12px; border: 1px solid transparent; border-bottom: 0; border-radius: 5px 5px 0 0; color: #626d78; background: transparent; cursor: pointer; }
 .document-tab.active { color: #202831; background: white; border-color: #d8dde3; }
 .document-tab-title { overflow: hidden; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
@@ -64,9 +65,10 @@ button { color: inherit; }
 .sidebar-resizer::after { position: absolute; top: 0; bottom: 0; left: 2px; width: 1px; background: #dfe3e8; content: ""; transition: background .15s, width .15s; }
 .sidebar-resizer:hover::after, .sidebar-resizer:focus-visible::after, .workspace.resizing .sidebar-resizer::after { left: 1px; width: 3px; background: #4a91d6; }
 .sidebar-collapsed .sidebar-resizer { display: none; }
-.sidebar-toggle { position: absolute; z-index: 3; top: 10px; left: calc(var(--sidebar-width) - 13px); display: grid; width: 26px; height: 26px; padding: 0; place-items: center; border: 1px solid #d7dde4; border-radius: 50%; color: #57616c; background: #fff; box-shadow: 0 1px 4px #1d293612; cursor: pointer; transition: left .18s, color .15s, background .15s; }
-.sidebar-toggle:hover, .sidebar-toggle:focus-visible { color: #1769c2; background: #eef6ff; outline: none; }
-.sidebar-collapsed .sidebar-toggle { left: 5px; }
+.sidebar-toggle { position: relative; display: grid; flex: 0 0 42px; width: 42px; height: 36px; padding: 0; place-items: center; border: 0; border-right: 1px solid #d8dde3; color: #5d6873; background: transparent; cursor: pointer; }
+.sidebar-toggle::before { width: 17px; height: 17px; box-sizing: border-box; border: 1.5px solid currentColor; border-radius: 4px; background: linear-gradient(to right, transparent 5px, currentColor 5px, currentColor 6.5px, transparent 6.5px); content: ""; }
+.sidebar-toggle:hover, .sidebar-toggle:focus-visible { color: #1769c2; background: #e4eef8; outline: none; }
+.sidebar-toggle.collapsed::before { background: linear-gradient(to right, transparent 3px, currentColor 3px, currentColor 4.5px, transparent 4.5px); }
 .document-card { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 5px; background: white; border: 1px solid #e2e6ea; }
 .document-card > div { min-width: 0; }
 .document-card strong, .document-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

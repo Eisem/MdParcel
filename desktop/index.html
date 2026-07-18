@@ -34,7 +34,10 @@
       <div class="window-document" id="window-document">未命名文档</div>
     </nav>
 
-    <div id="document-tabs" class="document-tabs" role="tablist" aria-label="打开的文档"></div>
+    <div class="tab-strip">
+      <button id="sidebar-toggle" class="sidebar-toggle" type="button" title="收起侧边栏" aria-label="收起侧边栏" aria-expanded="true"></button>
+      <div id="document-tabs" class="document-tabs" role="tablist" aria-label="打开的文档"></div>
+    </div>
 
     <section id="find-panel" class="find-panel" hidden aria-label="查找和替换">
       <input id="find-input" type="text" placeholder="查找" aria-label="查找内容" />
@@ -52,7 +55,6 @@
         <section id="outline-panel" class="sidebar-panel"><div id="outline" class="outline"></div><p id="outline-empty" class="empty-hint">输入 Markdown 标题后会在这里生成大纲。</p></section>
       </aside>
       <div id="sidebar-resizer" class="sidebar-resizer" role="separator" aria-label="调整侧边栏宽度" aria-orientation="vertical" tabindex="0"></div>
-      <button id="sidebar-toggle" class="sidebar-toggle" type="button" title="收起侧边栏" aria-label="收起侧边栏" aria-expanded="true">‹</button>
       <section id="editor-shell" class="editor-shell">
         <div class="hybrid-pane"><input id="document-title" aria-label="文档标题" value="未命名文档" /><div id="hybrid-editor" aria-label="Markdown 即时渲染编辑器"></div><div id="drop-hint">松开以将图片写入当前 .mdparcel</div></div>
       </section>

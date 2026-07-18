@@ -40,7 +40,7 @@ function setSidebarCollapsed(collapsed, persist = true) {
   sidebar.classList.toggle("hidden", collapsed);
   workspace.classList.toggle("sidebar-collapsed", collapsed);
   sidebarResizer.hidden = collapsed;
-  sidebarToggle.textContent = collapsed ? "›" : "‹";
+  sidebarToggle.classList.toggle("collapsed", collapsed);
   sidebarToggle.title = collapsed ? "展开侧边栏" : "收起侧边栏";
   sidebarToggle.setAttribute("aria-label", sidebarToggle.title);
   sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
