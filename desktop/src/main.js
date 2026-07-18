@@ -295,6 +295,23 @@ async function saveDocument(saveAs = false, doc = activeDocument()) {
   }
 }
 
+async function exportZip() {
+  const doc = activeDocument();
+  if (!doc || !(await saveDocument(false, doc))) return;
+  let target = await saveDialog({
+    defaultPath: `${displayTitle(doc)}.zip`,
+    filters: [{ name: "ZIP 文件", extensions: ["zip"] }],
+  });
+  if (!target) return;
+  if (!target.toLocaleLowerCase().endsWith(".zip")) target += ".zip";
+  try {
+    await invoke("export_package", { packagePath: doc.path, targetPath: target });
+    showToast("已导出 ZIP：document.md 和 src/");
+  } catch (error) {
+    window.alert(`导出 ZIP 失败：${error}`);
+  }
+}
+
 function imagePathsOnly(paths) {
   const supported = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "avif"]);
   return paths.filter((path) => supported.has(path.split(".").pop()?.toLocaleLowerCase()));
@@ -433,6 +450,7 @@ const actions = {
   open: openDocument,
   save: () => saveDocument(false),
   "save-as": () => saveDocument(true),
+  "export-zip": exportZip,
   "insert-image": insertImage,
   "toggle-sidebar": toggleSidebar,
   undo: () => triggerEditorCommand("undo"),

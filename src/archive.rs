@@ -209,6 +209,44 @@ pub fn unpack(input: &Path, output: &Path, force: bool) -> Result<()> {
     Ok(())
 }
 
+/// Exports an MDParcel as a regular ZIP archive. The Markdown document lives
+/// at the archive root and packaged resources are restored below `src/`.
+pub fn export_zip(input: &Path, output: &Path) -> Result<()> {
+    ensure_zip_extension(output)?;
+    check(input)?;
+    let (manifest, markdown, assets) = read_package_content(input)?;
+    let markdown = export_markdown_paths(&markdown, &manifest.assets)?;
+
+    if let Some(parent) = output.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let temporary = output.with_extension("zip.tmp");
+    let out = File::create(&temporary)
+        .with_context(|| format!("create temporary export {}", temporary.display()))?;
+    let mut zip = ZipWriter::new(out);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    add(&mut zip, "document.md", markdown.as_bytes(), options)?;
+    for (asset, bytes) in assets {
+        let relative = markdown::safe_relative(&asset.original_path)
+            .ok_or_else(|| anyhow!("unsafe original asset path: {}", asset.original_path))?;
+        let destination = format!("src/{}", relative.to_string_lossy().replace('\\', "/"));
+        add(&mut zip, &destination, &bytes, options)?;
+    }
+    zip.finish()?;
+    if output.exists() {
+        fs::remove_file(output)
+            .with_context(|| format!("replace existing export {}", output.display()))?;
+    }
+    fs::rename(&temporary, output)
+        .with_context(|| format!("finish export {}", output.display()))?;
+    println!(
+        "exported {} asset(s) to {}",
+        manifest.assets.len(),
+        output.display()
+    );
+    Ok(())
+}
+
 /// Directly renders a package without requiring the user to unpack it.
 pub fn view(input: &Path, open_browser: bool) -> Result<()> {
     let preview = create_preview(input)?;
@@ -465,6 +503,35 @@ fn ensure_mdparcel_extension(path: &Path) -> Result<()> {
     Ok(())
 }
 
+fn ensure_zip_extension(path: &Path) -> Result<()> {
+    if path.extension().and_then(|value| value.to_str()) != Some("zip") {
+        bail!("file must use the .zip extension");
+    }
+    Ok(())
+}
+
+fn export_markdown_paths(markdown: &str, assets: &[Asset]) -> Result<String> {
+    let mut replacements = assets
+        .iter()
+        .map(|asset| {
+            let original = markdown::safe_relative(&asset.original_path)
+                .ok_or_else(|| anyhow!("unsafe original asset path: {}", asset.original_path))?;
+            Ok((
+                asset.archive_path.clone(),
+                format!("src/{}", original.to_string_lossy().replace('\\', "/")),
+            ))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    // Longer paths must be replaced first so `assets/a` cannot change the
+    // beginning of an already-rewritten `assets/a-longer` destination.
+    replacements.sort_by(|left, right| right.0.len().cmp(&left.0.len()));
+    Ok(replacements
+        .into_iter()
+        .fold(markdown.to_owned(), |text, (from, to)| {
+            text.replace(&from, &to)
+        }))
+}
+
 fn read_package_content(path: &Path) -> Result<PackageContent> {
     let mut zip = ZipArchive::new(File::open(path)?)?;
     enforce_limits(&mut zip)?;
@@ -627,6 +694,36 @@ mod tests {
         assert!(restored.join("images/logo.png").is_file());
         let recovered = fs::read_to_string(restored.join("note.md"))?;
         assert!(recovered.contains("images/logo.png"));
+        fs::remove_dir_all(root)?;
+        Ok(())
+    }
+
+    #[test]
+    fn package_can_be_exported_as_a_regular_zip() -> Result<()> {
+        let id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("mdparcel-export-test-{id}"));
+        fs::create_dir_all(root.join("images"))?;
+        fs::write(root.join("images/logo.png"), b"fake png")?;
+        fs::write(
+            root.join("note.md"),
+            "# Export\n\n![Logo](images/logo.png)\n[Attachment](images/logo.png)\n",
+        )?;
+        let package = root.join("note.mdparcel");
+        let exported = root.join("note.zip");
+        pack(&root.join("note.md"), &package, false, false)?;
+        export_zip(&package, &exported)?;
+
+        let mut zip = ZipArchive::new(File::open(&exported)?)?;
+        let mut document = String::new();
+        zip.by_name("document.md")?.read_to_string(&mut document)?;
+        assert!(document.contains("src/images/logo.png"));
+        assert!(!document.contains("assets/images/logo.png"));
+        let mut image = Vec::new();
+        zip.by_name("src/images/logo.png")?
+            .read_to_end(&mut image)?;
+        assert_eq!(image, b"fake png");
         fs::remove_dir_all(root)?;
         Ok(())
     }

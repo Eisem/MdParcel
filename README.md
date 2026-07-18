@@ -10,6 +10,7 @@ mdparcel pack .\notes\rust.md -o .\rust-notes.mdparcel
 mdparcel info .\rust-notes.mdparcel
 mdparcel check .\rust-notes.mdparcel
 mdparcel unpack .\rust-notes.mdparcel -o .\restored-notes
+mdparcel export .\rust-notes.mdparcel -o .\rust-notes.zip
 ```
 
 ## Desktop editor
@@ -24,6 +25,9 @@ are bundled locally, so editing does not require a CDN or internet connection.
 The editor also supports multiple document tabs, unsaved-state indicators,
 find/replace/replace-all, and image imports from the picker, drag-and-drop, or
 the clipboard. Imported images are stored inside the active `.mdparcel` archive.
+Use **文件 → 导出 ZIP…** to create a conventional ZIP containing `document.md`
+and a `src/` folder; resource links in the exported Markdown are rewritten to
+`src/...` automatically.
 
 ```powershell
 cd .\desktop

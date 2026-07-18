@@ -29,6 +29,12 @@ fn save_package(
 }
 
 #[tauri::command]
+fn export_package(package_path: String, target_path: String) -> Result<(), String> {
+    archive::export_zip(Path::new(&package_path), Path::new(&target_path))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn import_asset(package_path: String, asset_path: String) -> Result<String, String> {
     archive::import_asset(Path::new(&package_path), Path::new(&asset_path))
         .map_err(|error| error.to_string())
@@ -52,6 +58,7 @@ fn main() {
             open_package,
             render_markdown,
             save_package,
+            export_package,
             import_asset,
             import_asset_bytes
         ])

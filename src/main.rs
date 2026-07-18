@@ -41,6 +41,12 @@ enum Command {
         #[arg(short, long)]
         force: bool,
     },
+    /// Export Markdown and resources as a regular ZIP archive.
+    Export {
+        input: PathBuf,
+        #[arg(short, long)]
+        output: PathBuf,
+    },
     /// Render an MDParcel package to HTML and open it in the default browser.
     View {
         input: PathBuf,
@@ -65,6 +71,7 @@ fn main() -> Result<()> {
             output,
             force,
         } => archive::unpack(&input, &output, force),
+        Command::Export { input, output } => archive::export_zip(&input, &output),
         Command::View { input, no_open } => archive::view(&input, !no_open),
     }
 }
