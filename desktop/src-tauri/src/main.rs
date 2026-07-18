@@ -8,11 +8,8 @@ fn open_package(path: String) -> Result<archive::RenderedDocument, String> {
 
 #[tauri::command]
 fn render_markdown(markdown: String, source_path: Option<String>) -> Result<String, String> {
-    archive::render_markdown(
-        &markdown,
-        source_path.as_deref().map(Path::new),
-    )
-    .map_err(|error| error.to_string())
+    archive::render_markdown(&markdown, source_path.as_deref().map(Path::new))
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -44,13 +41,8 @@ fn import_asset_bytes(
     media_type: String,
     bytes: Vec<u8>,
 ) -> Result<String, String> {
-    archive::import_asset_bytes(
-        Path::new(&package_path),
-        &filename,
-        &media_type,
-        bytes,
-    )
-    .map_err(|error| error.to_string())
+    archive::import_asset_bytes(Path::new(&package_path), &filename, &media_type, bytes)
+        .map_err(|error| error.to_string())
 }
 
 fn main() {

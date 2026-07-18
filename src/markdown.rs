@@ -7,16 +7,17 @@ pub fn local_destinations(markdown: &str) -> Vec<String> {
     let bytes = markdown.as_bytes();
     let mut index = 0;
     while index < bytes.len() {
-        if bytes[index] == b']' && bytes.get(index + 1) == Some(&b'(') {
-            if let Some(end) = markdown[index + 2..].find(')') {
-                let value = markdown[index + 2..index + 2 + end].trim();
-                let destination = value.split_whitespace().next().unwrap_or("");
-                if is_local(destination) {
-                    found.push(destination.to_owned());
-                }
-                index += end + 3;
-                continue;
+        if bytes[index] == b']'
+            && bytes.get(index + 1) == Some(&b'(')
+            && let Some(end) = markdown[index + 2..].find(')')
+        {
+            let value = markdown[index + 2..index + 2 + end].trim();
+            let destination = value.split_whitespace().next().unwrap_or("");
+            if is_local(destination) {
+                found.push(destination.to_owned());
             }
+            index += end + 3;
+            continue;
         }
         index += 1;
     }

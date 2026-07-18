@@ -19,6 +19,9 @@ const MAX_ENTRIES: usize = 10_000;
 const MAX_UNPACKED_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_IMPORTED_ASSET_BYTES: u64 = 100 * 1024 * 1024;
 
+type AssetContents = Vec<(Asset, Vec<u8>)>;
+type PackageContent = (Manifest, String, AssetContents);
+
 #[derive(serde::Serialize)]
 pub struct RenderedDocument {
     pub title: String,
@@ -363,7 +366,7 @@ fn import_asset_data(
 
 fn render_markdown_with_assets(markdown: &str, assets: &[(Asset, Vec<u8>)]) -> String {
     let mut body = String::new();
-    html::push_html(&mut body, Parser::new_ext(&markdown, Options::all()));
+    html::push_html(&mut body, Parser::new_ext(markdown, Options::all()));
     for (asset, bytes) in assets {
         if !asset.media_type.starts_with("image/") {
             continue;
@@ -462,7 +465,7 @@ fn ensure_mdparcel_extension(path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn read_package_content(path: &Path) -> Result<(Manifest, String, Vec<(Asset, Vec<u8>)>)> {
+fn read_package_content(path: &Path) -> Result<PackageContent> {
     let mut zip = ZipArchive::new(File::open(path)?)?;
     enforce_limits(&mut zip)?;
     let manifest = manifest_from_zip(&mut zip)?;
@@ -490,7 +493,7 @@ fn write_editable_package(
     title: &str,
     markdown: &str,
     created_at: String,
-    assets: Vec<(Asset, Vec<u8>)>,
+    assets: AssetContents,
 ) -> Result<()> {
     ensure_mdparcel_extension(target)?;
     if let Some(parent) = target.parent() {
@@ -549,7 +552,7 @@ fn manifest_from_zip(zip: &mut ZipArchive<File>) -> Result<Manifest> {
     zip.by_name("manifest.json")
         .context("missing manifest.json")?
         .read_to_string(&mut text)?;
-    Ok(serde_json::from_str(&text).context("invalid manifest.json")?)
+    serde_json::from_str(&text).context("invalid manifest.json")
 }
 fn validate_manifest(m: &Manifest) -> Result<()> {
     if m.format != FORMAT || m.version != VERSION || m.entry != "document.md" {
@@ -591,6 +594,12 @@ fn safe_file_name(value: &str) -> String {
         .chars()
         .map(|c| if "\\/:*?\"<>|".contains(c) { '_' } else { c })
         .collect()
+}
+
+fn chrono_time() -> String {
+    time::OffsetDateTime::now_utc()
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_else(|_| "1970-01-01T00:00:00Z".into())
 }
 
 #[cfg(test)]
@@ -746,9 +755,4 @@ mod tests {
         fs::remove_dir_all(root)?;
         Ok(())
     }
-}
-fn chrono_time() -> String {
-    time::OffsetDateTime::now_utc()
-        .format(&time::format_description::well_known::Rfc3339)
-        .unwrap_or_else(|_| "1970-01-01T00:00:00Z".into())
 }
