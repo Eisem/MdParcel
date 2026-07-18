@@ -7,7 +7,10 @@ import { createDocument, displayTitle, findMatches, isDocumentDirty, markdownIma
 
 const editorHost = document.getElementById("hybrid-editor");
 const titleInput = document.getElementById("document-title");
+const workspace = document.getElementById("workspace");
 const sidebar = document.getElementById("sidebar");
+const sidebarResizer = document.getElementById("sidebar-resizer");
+const sidebarToggle = document.getElementById("sidebar-toggle");
 const tabs = document.getElementById("document-tabs");
 const findPanel = document.getElementById("find-panel");
 const findInput = document.getElementById("find-input");
@@ -16,6 +19,37 @@ const matchCase = document.getElementById("match-case");
 const vditorCdn = new URL("./vditor", document.baseURI).href.replace(/\/$/, "");
 const state = { documents: [], activeId: null, findIndex: -1 };
 const activeDocument = () => state.documents.find((item) => item.id === state.activeId);
+const sidebarLimits = { min: 180, max: 520 };
+let sidebarWidth = Number.parseInt(localStorage.getItem("mdparcel.sidebar-width"), 10) || 278;
+let resizingSidebar = false;
+
+function maxSidebarWidth() {
+  return Math.max(sidebarLimits.min, Math.min(sidebarLimits.max, workspace.clientWidth - 360));
+}
+
+function setSidebarWidth(width, persist = true) {
+  sidebarWidth = Math.round(Math.max(sidebarLimits.min, Math.min(maxSidebarWidth(), width)));
+  document.documentElement.style.setProperty("--sidebar-width", `${sidebarWidth}px`);
+  sidebarResizer.setAttribute("aria-valuemin", String(sidebarLimits.min));
+  sidebarResizer.setAttribute("aria-valuemax", String(maxSidebarWidth()));
+  sidebarResizer.setAttribute("aria-valuenow", String(sidebarWidth));
+  if (persist) localStorage.setItem("mdparcel.sidebar-width", String(sidebarWidth));
+}
+
+function setSidebarCollapsed(collapsed, persist = true) {
+  sidebar.classList.toggle("hidden", collapsed);
+  workspace.classList.toggle("sidebar-collapsed", collapsed);
+  sidebarResizer.hidden = collapsed;
+  sidebarToggle.textContent = collapsed ? "›" : "‹";
+  sidebarToggle.title = collapsed ? "展开侧边栏" : "收起侧边栏";
+  sidebarToggle.setAttribute("aria-label", sidebarToggle.title);
+  sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
+  if (persist) localStorage.setItem("mdparcel.sidebar-collapsed", String(collapsed));
+}
+
+function toggleSidebar() {
+  setSidebarCollapsed(!sidebar.classList.contains("hidden"));
+}
 
 function extractImageSources(html) {
   const template = document.createElement("template");
@@ -400,7 +434,7 @@ const actions = {
   save: () => saveDocument(false),
   "save-as": () => saveDocument(true),
   "insert-image": insertImage,
-  "toggle-sidebar": () => sidebar.classList.toggle("hidden"),
+  "toggle-sidebar": toggleSidebar,
   undo: () => triggerEditorCommand("undo"),
   redo: () => triggerEditorCommand("redo"),
   cut: () => clipboardAction("cut"),
@@ -450,6 +484,42 @@ document.addEventListener("mousedown", (event) => {
   if (event.target.closest(".menu-trigger") || event.target.closest('[data-action^="format-"]')) event.preventDefault();
 });
 
+function resizeSidebar(event) {
+  setSidebarWidth(event.clientX - workspace.getBoundingClientRect().left);
+}
+
+function finishSidebarResize(event) {
+  if (!resizingSidebar) return;
+  resizingSidebar = false;
+  workspace.classList.remove("resizing");
+  if (event && sidebarResizer.hasPointerCapture(event.pointerId)) sidebarResizer.releasePointerCapture(event.pointerId);
+}
+
+sidebarToggle.addEventListener("click", toggleSidebar);
+sidebarResizer.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0) return;
+  resizingSidebar = true;
+  workspace.classList.add("resizing");
+  sidebarResizer.setPointerCapture(event.pointerId);
+  resizeSidebar(event);
+  event.preventDefault();
+});
+sidebarResizer.addEventListener("pointermove", (event) => {
+  if (resizingSidebar) resizeSidebar(event);
+});
+sidebarResizer.addEventListener("pointerup", finishSidebarResize);
+sidebarResizer.addEventListener("pointercancel", finishSidebarResize);
+sidebarResizer.addEventListener("keydown", (event) => {
+  const step = event.shiftKey ? 50 : 20;
+  if (event.key === "ArrowLeft") setSidebarWidth(sidebarWidth - step);
+  else if (event.key === "ArrowRight") setSidebarWidth(sidebarWidth + step);
+  else if (event.key === "Home") setSidebarWidth(sidebarLimits.min);
+  else if (event.key === "End") setSidebarWidth(maxSidebarWidth());
+  else return;
+  event.preventDefault();
+});
+window.addEventListener("resize", () => setSidebarWidth(sidebarWidth, false));
+
 document.querySelectorAll("[data-tab]").forEach((tab) => tab.addEventListener("click", () => {
   document.querySelectorAll("[data-tab]").forEach((item) => item.classList.toggle("active", item === tab));
   document.getElementById("file-panel").hidden = tab.dataset.tab !== "file";
@@ -498,4 +568,6 @@ function showToast(message, error = false) {
   toastTimer = setTimeout(() => toast.classList.remove("visible"), 2600);
 }
 
+setSidebarWidth(sidebarWidth, false);
+setSidebarCollapsed(localStorage.getItem("mdparcel.sidebar-collapsed") === "true", false);
 newDocument().catch((error) => window.alert(`编辑器初始化失败：${error}`));

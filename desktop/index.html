@@ -34,11 +34,6 @@
       <div class="window-document" id="window-document">未命名文档</div>
     </nav>
 
-    <div class="toolbar app-toolbar" aria-label="文件工具栏">
-      <button data-action="new" title="新建">＋</button><button data-action="open" title="打开">打开</button><button data-action="save" title="保存">保存</button><button data-action="insert-image" title="导入图片">导入图片</button>
-      <span class="toolbar-spacer"></span><span class="hybrid-tip">Vditor 即时渲染 · 图片可拖放或直接粘贴</span>
-    </div>
-
     <div id="document-tabs" class="document-tabs" role="tablist" aria-label="打开的文档"></div>
 
     <section id="find-panel" class="find-panel" hidden aria-label="查找和替换">
@@ -50,12 +45,14 @@
       <label><input id="match-case" type="checkbox" /> 区分大小写</label><button data-action="close-find" title="关闭">×</button>
     </section>
 
-    <main class="workspace">
+    <main id="workspace" class="workspace">
       <aside id="sidebar">
         <div class="sidebar-tabs"><button data-tab="file">文件</button><button data-tab="outline" class="active">大纲</button></div>
         <section id="file-panel" class="sidebar-panel" hidden><div class="document-card"><span class="file-icon">MD</span><div><strong id="file-title">未命名文档</strong><small id="file-path">尚未保存</small></div></div><p class="asset-summary" id="asset-summary">0 个包内资源</p></section>
         <section id="outline-panel" class="sidebar-panel"><div id="outline" class="outline"></div><p id="outline-empty" class="empty-hint">输入 Markdown 标题后会在这里生成大纲。</p></section>
       </aside>
+      <div id="sidebar-resizer" class="sidebar-resizer" role="separator" aria-label="调整侧边栏宽度" aria-orientation="vertical" tabindex="0"></div>
+      <button id="sidebar-toggle" class="sidebar-toggle" type="button" title="收起侧边栏" aria-label="收起侧边栏" aria-expanded="true">‹</button>
       <section id="editor-shell" class="editor-shell">
         <div class="hybrid-pane"><input id="document-title" aria-label="文档标题" value="未命名文档" /><div id="hybrid-editor" aria-label="Markdown 即时渲染编辑器"></div><div id="drop-hint">松开以将图片写入当前 .mdparcel</div></div>
       </section>

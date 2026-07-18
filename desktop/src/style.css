@@ -1,4 +1,5 @@
 :root {
+  --sidebar-width: 278px;
   color: #222831;
   background: #f5f6f8;
   font-family: system-ui, "Microsoft YaHei", sans-serif;
@@ -33,19 +34,7 @@ button { color: inherit; }
 .separator { height: 1px; margin: 4px 6px; background: #e5e8ec; }
 .window-document { margin-left: auto; padding-right: 8px; max-width: 36vw; overflow: hidden; color: #69737e; text-overflow: ellipsis; white-space: nowrap; }
 
-.toolbar {
-  height: 46px; display: flex; align-items: center; gap: 4px; padding: 5px 10px;
-  background: white; border-bottom: 1px solid #dfe3e8; user-select: none;
-}
-.toolbar button, .toolbar select { height: 32px; padding: 0 10px; border: 1px solid transparent; border-radius: 4px; background: transparent; cursor: pointer; }
-.toolbar button:hover, .toolbar select:hover { border-color: #dce1e7; background: #f4f6f8; }
-.toolbar select { min-width: 92px; border-color: #e0e4e8; }
-.toolbar-separator { width: 1px; height: 23px; margin: 0 4px; background: #dde2e7; }
-.toolbar-spacer, .status-spacer { flex: 1; }
-.hybrid-tip { padding-right: 8px; color: #7a8590; font-size: 12px; }
-.view-switch { display: flex; padding: 2px; border-radius: 5px; background: #eff2f5; }
-.view-switch button { height: 27px; padding: 0 12px; }
-.view-switch button.active { color: #1769c2; background: white; border-color: #d9dee4; box-shadow: 0 1px 3px #202b361c; }
+.status-spacer { flex: 1; }
 
 .document-tabs { display: flex; flex: 0 0 37px; min-width: 0; padding: 3px 8px 0; overflow-x: auto; overflow-y: hidden; background: #edf0f3; border-bottom: 1px solid #d8dde3; }
 .document-tab { display: flex; align-items: center; gap: 7px; min-width: 120px; max-width: 230px; height: 34px; padding: 0 8px 0 12px; border: 1px solid transparent; border-bottom: 0; border-radius: 5px 5px 0 0; color: #626d78; background: transparent; cursor: pointer; }
@@ -63,13 +52,21 @@ button { color: inherit; }
 .find-panel button { height: 29px; padding: 0 9px; border: 1px solid #d5dae0; border-radius: 4px; background: white; cursor: pointer; }
 .find-panel label, #find-count { color: #69737e; font-size: 12px; white-space: nowrap; }
 
-.workspace { display: flex; flex: 1; min-height: 0; }
-#sidebar { width: 278px; flex: 0 0 278px; background: #f8f9fa; border-right: 1px solid #dfe3e8; overflow: hidden; transition: width .18s, flex-basis .18s; }
+.workspace { position: relative; display: flex; flex: 1; min-height: 0; }
+#sidebar { width: var(--sidebar-width); flex: 0 0 var(--sidebar-width); background: #f8f9fa; border-right: 1px solid #dfe3e8; overflow: hidden; transition: width .18s, flex-basis .18s; }
 #sidebar.hidden { width: 0; flex-basis: 0; border-right: 0; }
-.sidebar-tabs { height: 49px; display: grid; grid-template-columns: 1fr 1fr; padding: 0 22px; background: #fafbfc; }
+.workspace.resizing #sidebar { transition: none; }
+.sidebar-tabs { height: 49px; display: grid; grid-template-columns: 1fr 1fr; padding: 0 36px 0 22px; background: #fafbfc; }
 .sidebar-tabs button { border: 0; border-bottom: 3px solid transparent; background: transparent; color: #68727d; cursor: pointer; }
 .sidebar-tabs button.active { border-color: #303943; color: #222831; font-weight: 700; }
 .sidebar-panel { height: calc(100% - 49px); padding: 14px 13px 30px; overflow: auto; }
+.sidebar-resizer { position: relative; z-index: 2; flex: 0 0 6px; cursor: col-resize; outline: none; }
+.sidebar-resizer::after { position: absolute; top: 0; bottom: 0; left: 2px; width: 1px; background: #dfe3e8; content: ""; transition: background .15s, width .15s; }
+.sidebar-resizer:hover::after, .sidebar-resizer:focus-visible::after, .workspace.resizing .sidebar-resizer::after { left: 1px; width: 3px; background: #4a91d6; }
+.sidebar-collapsed .sidebar-resizer { display: none; }
+.sidebar-toggle { position: absolute; z-index: 3; top: 10px; left: calc(var(--sidebar-width) - 13px); display: grid; width: 26px; height: 26px; padding: 0; place-items: center; border: 1px solid #d7dde4; border-radius: 50%; color: #57616c; background: #fff; box-shadow: 0 1px 4px #1d293612; cursor: pointer; transition: left .18s, color .15s, background .15s; }
+.sidebar-toggle:hover, .sidebar-toggle:focus-visible { color: #1769c2; background: #eef6ff; outline: none; }
+.sidebar-collapsed .sidebar-toggle { left: 5px; }
 .document-card { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 5px; background: white; border: 1px solid #e2e6ea; }
 .document-card > div { min-width: 0; }
 .document-card strong, .document-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -96,6 +93,7 @@ button { color: inherit; }
 .vditor-document .vditor-reset { max-width: 920px; margin: 0 auto; padding: 20px 28px 100px !important; color: #252b33; font: 16px/1.72 system-ui, "Microsoft YaHei", sans-serif; }
 .vditor-document .vditor-ir__node--expand { background: #f8f9fb; box-shadow: inset 2px 0 #b55cff; }
 .vditor-document .vditor-reset h1, .vditor-document .vditor-reset h2, .vditor-document .vditor-reset h3 { color: #18212b; }
+.vditor-document .vditor-ir .vditor-reset > h1::before, .vditor-document .vditor-ir .vditor-reset > h2::before, .vditor-document .vditor-ir .vditor-reset > h3::before, .vditor-document .vditor-ir .vditor-reset > h4::before, .vditor-document .vditor-ir .vditor-reset > h5::before, .vditor-document .vditor-ir .vditor-reset > h6::before { display: none; content: none; }
 .vditor-document .vditor-reset img { max-height: 68vh; border-radius: 5px; }
 #drop-hint { display: none; position: absolute; z-index: 10; inset: 16px; place-items: center; border: 2px dashed #4087cc; border-radius: 9px; color: #1769c2; background: #edf6ffeb; font-size: 17px; font-weight: 700; pointer-events: none; }
 body.dragging-image #drop-hint { display: grid; }
@@ -106,8 +104,6 @@ body.dragging-image #drop-hint { display: grid; }
 .toast.error { background: #b53b3b; }
 
 @media (max-width: 850px) {
-  #sidebar { width: 230px; flex-basis: 230px; }
   .find-panel label { display: none; }
-  .toolbar button[title="插入链接"], .toolbar button[title="引用"] { display: none; }
   .menu-popup.edit-menu { min-width: 440px; }
 }
