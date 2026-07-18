@@ -1,5 +1,7 @@
 :root {
   --sidebar-width: 278px;
+  --editor-font-size: 16px;
+  --editor-line-height: 1.72;
   color: #222831;
   background: #f5f6f8;
   font-family: system-ui, "Microsoft YaHei", sans-serif;
@@ -83,16 +85,19 @@ button { color: inherit; }
 .outline-item.level-3 { padding-left: 31px; font-size: 13px; }
 .outline-item.level-4, .outline-item.level-5, .outline-item.level-6 { padding-left: 44px; color: #65707b; font-size: 12px; }
 
-.editor-shell { display: flex; flex: 1; min-width: 0; min-height: 0; background: white; }
+.editor-shell { display: flex; flex: 1 1 0; width: 0; min-width: 0; min-height: 0; background: white; }
 .hybrid-pane { position: relative; display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: white; }
-#document-title { display: block; width: calc(100% - 56px); max-width: 920px; margin: 13px auto 0; padding: 7px 0 10px; border: 0; border-bottom: 1px solid #edf0f2; outline: none; color: #303740; background: transparent; font-size: 18px; font-weight: 650; }
+#document-title { display: block; width: auto; margin: 13px 28px 0; padding: 7px 0 10px; border: 0; border-bottom: 1px solid #edf0f2; outline: none; color: #303740; background: transparent; font-size: 18px; font-weight: 650; }
 #hybrid-editor { flex: 1; min-height: 0; overflow: hidden; background: white; }
-.vditor-document { width: 100%; height: 100%; }
+.vditor-document { width: 100%; min-width: 0; height: 100%; }
 .vditor-document.hidden { display: none; }
-.vditor-document > .vditor { height: 100% !important; border: 0; border-radius: 0; }
+.vditor-document > .vditor { width: 100%; min-width: 0; height: 100% !important; border: 0; border-radius: 0; }
 .vditor-document .vditor-toolbar { display: none !important; }
-.vditor-document .vditor-ir { background: white; }
-.vditor-document .vditor-reset { max-width: 920px; margin: 0 auto; padding: 20px 28px 100px !important; color: #252b33; font: 16px/1.72 system-ui, "Microsoft YaHei", sans-serif; }
+.vditor-document .vditor-ir { min-width: 0; background: white; }
+.vditor-document .vditor-reset { width: 100%; max-width: none; margin: 0; padding: 20px 28px 100px !important; color: #252b33; font: var(--editor-font-size)/var(--editor-line-height) system-ui, "Microsoft YaHei", sans-serif; }
+.vditor-document.show-line-numbers .vditor-reset { counter-reset: mdparcel-line; padding-left: 76px !important; }
+.vditor-document.show-line-numbers .vditor-reset > [data-block="0"] { position: relative; counter-increment: mdparcel-line; }
+.vditor-document.show-line-numbers .vditor-reset > [data-block="0"]::before { position: absolute; top: .18em; right: calc(100% + 13px); width: 42px; color: #9ca6b1; content: counter(mdparcel-line); font: 12px/1.5 ui-monospace, Consolas, monospace; text-align: right; pointer-events: none; }
 .vditor-document .vditor-ir__node--expand { background: #f8f9fb; box-shadow: inset 2px 0 #b55cff; }
 .vditor-document .vditor-reset h1, .vditor-document .vditor-reset h2, .vditor-document .vditor-reset h3 { color: #18212b; }
 .vditor-document .vditor-ir .vditor-reset > h1::before, .vditor-document .vditor-ir .vditor-reset > h2::before, .vditor-document .vditor-ir .vditor-reset > h3::before, .vditor-document .vditor-ir .vditor-reset > h4::before, .vditor-document .vditor-ir .vditor-reset > h5::before, .vditor-document .vditor-ir .vditor-reset > h6::before { display: none; content: none; }

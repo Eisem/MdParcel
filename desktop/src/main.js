@@ -22,6 +22,13 @@ const activeDocument = () => state.documents.find((item) => item.id === state.ac
 const sidebarLimits = { min: 180, max: 520 };
 let sidebarWidth = Number.parseInt(localStorage.getItem("mdparcel.sidebar-width"), 10) || 278;
 let resizingSidebar = false;
+const viewLimits = { fontSize: { min: 12, max: 24, step: 1, default: 16 }, lineHeight: { min: 1.2, max: 2.4, step: 0.08, default: 1.72 } };
+const viewSettings = {
+  lineNumbers: localStorage.getItem("mdparcel.show-line-numbers") === "true",
+  fontSize: Number.parseInt(localStorage.getItem("mdparcel.font-size"), 10) || viewLimits.fontSize.default,
+  lineHeight: Number.parseFloat(localStorage.getItem("mdparcel.line-height")) || viewLimits.lineHeight.default,
+};
+let editorResizeFrame;
 
 function maxSidebarWidth() {
   return Math.max(sidebarLimits.min, Math.min(sidebarLimits.max, workspace.clientWidth - 360));
@@ -49,6 +56,40 @@ function setSidebarCollapsed(collapsed, persist = true) {
 
 function toggleSidebar() {
   setSidebarCollapsed(!sidebar.classList.contains("hidden"));
+}
+
+function clamp(value, limits) {
+  return Math.max(limits.min, Math.min(limits.max, value));
+}
+
+function scheduleEditorResize() {
+  cancelAnimationFrame(editorResizeFrame);
+  editorResizeFrame = requestAnimationFrame(() => {
+    state.documents.forEach((doc) => doc.editor?.resize());
+  });
+}
+
+function applyViewSettings(persist = true) {
+  viewSettings.fontSize = clamp(Math.round(viewSettings.fontSize), viewLimits.fontSize);
+  viewSettings.lineHeight = clamp(Math.round(viewSettings.lineHeight * 100) / 100, viewLimits.lineHeight);
+  document.documentElement.style.setProperty("--editor-font-size", `${viewSettings.fontSize}px`);
+  document.documentElement.style.setProperty("--editor-line-height", String(viewSettings.lineHeight));
+  document.querySelectorAll(".vditor-document").forEach((mount) => mount.classList.toggle("show-line-numbers", viewSettings.lineNumbers));
+  document.getElementById("line-number-value").textContent = viewSettings.lineNumbers ? "开" : "关";
+  document.getElementById("font-size-value").textContent = `${viewSettings.fontSize} px`;
+  document.getElementById("line-height-value").textContent = viewSettings.lineHeight.toFixed(2);
+  if (persist) {
+    localStorage.setItem("mdparcel.show-line-numbers", String(viewSettings.lineNumbers));
+    localStorage.setItem("mdparcel.font-size", String(viewSettings.fontSize));
+    localStorage.setItem("mdparcel.line-height", String(viewSettings.lineHeight));
+  }
+  scheduleEditorResize();
+}
+
+function adjustViewSetting(name, direction) {
+  const limits = viewLimits[name];
+  viewSettings[name] = clamp(viewSettings[name] + limits.step * direction, limits);
+  applyViewSettings();
 }
 
 function extractImageSources(html) {
@@ -169,6 +210,7 @@ async function createVditor(doc) {
   doc.mount = document.createElement("div");
   doc.mount.className = "vditor-document";
   editorHost.appendChild(doc.mount);
+  doc.mount.classList.toggle("show-line-numbers", viewSettings.lineNumbers);
   await new Promise((resolve) => {
     doc.editor = new Vditor(doc.mount, {
       cdn: vditorCdn,
@@ -214,6 +256,7 @@ async function createVditor(doc) {
     });
   });
   observePackageImages(doc);
+  scheduleEditorResize();
 }
 
 async function activateDocument(id) {
@@ -453,6 +496,13 @@ const actions = {
   "export-zip": exportZip,
   "insert-image": insertImage,
   "toggle-sidebar": toggleSidebar,
+  "toggle-line-numbers": () => { viewSettings.lineNumbers = !viewSettings.lineNumbers; applyViewSettings(); },
+  "font-decrease": () => adjustViewSetting("fontSize", -1),
+  "font-increase": () => adjustViewSetting("fontSize", 1),
+  "font-reset": () => { viewSettings.fontSize = viewLimits.fontSize.default; applyViewSettings(); },
+  "line-height-decrease": () => adjustViewSetting("lineHeight", -1),
+  "line-height-increase": () => adjustViewSetting("lineHeight", 1),
+  "line-height-reset": () => { viewSettings.lineHeight = viewLimits.lineHeight.default; applyViewSettings(); },
   undo: () => triggerEditorCommand("undo"),
   redo: () => triggerEditorCommand("redo"),
   cut: () => clipboardAction("cut"),
@@ -536,7 +586,8 @@ sidebarResizer.addEventListener("keydown", (event) => {
   else return;
   event.preventDefault();
 });
-window.addEventListener("resize", () => setSidebarWidth(sidebarWidth, false));
+window.addEventListener("resize", () => { setSidebarWidth(sidebarWidth, false); scheduleEditorResize(); });
+new ResizeObserver(scheduleEditorResize).observe(editorHost);
 
 document.querySelectorAll("[data-tab]").forEach((tab) => tab.addEventListener("click", () => {
   document.querySelectorAll("[data-tab]").forEach((item) => item.classList.toggle("active", item === tab));
@@ -588,4 +639,5 @@ function showToast(message, error = false) {
 
 setSidebarWidth(sidebarWidth, false);
 setSidebarCollapsed(localStorage.getItem("mdparcel.sidebar-collapsed") === "true", false);
+applyViewSettings(false);
 newDocument().catch((error) => window.alert(`编辑器初始化失败：${error}`));
