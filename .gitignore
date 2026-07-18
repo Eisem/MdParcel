@@ -3,3 +3,8 @@
 /desktop/dist/
 /desktop/src-tauri/target/
 /desktop/tauri-build.*.log
+
+# Local test documents and imported test images
+/*.mdparcel
+/*.mdz
+/imgs/
